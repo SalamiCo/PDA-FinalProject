@@ -1,0 +1,18 @@
+screen(D, R) :- screen_print(D), screen_select(D, R).
+
+screen_print([]).
+screen_print([X|Xs]) :- screen_print_item(X), screen_print(Xs).
+
+screen_print_item(title(T)) :- print('\x1B[H\x1B[J'), print('== '), print(T), print(' =='), nl.
+screen_print_item(line(L)) :- print(L), nl.
+screen_print_item(blank) :- nl.
+screen_print_item(blank(N)) :- N > 0, !, nl, screen_print_item(blank(N-1)); !.
+screen_print_item(menu(C, _, S)) :- print('[\x1B[1m'), print(C), print('\x1B[m] '), print(S), nl.
+screen_print_item({X, Xs}) :- X, screen_print_item(Xs).
+
+
+screen_select(D, R) :- get_single_char(K), name(C, [K]), screen_select(D, D, C, R).
+
+screen_select(_, [menu(C, O, _)|_], C, O) :- !.
+screen_select(D, [_|L], C, R) :- screen_select(D, L, C, R).
+screen_select(D, [], _, R) :- screen_select(D, R).

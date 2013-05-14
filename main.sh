@@ -14,6 +14,8 @@ function Prolog () {
     swipl "$@"
   elif command -v swipl-win >/dev/null 2>&1; then
     swipl-win "$@"
+  else
+    return 1
   fi
 }
 
@@ -41,4 +43,4 @@ for FILE in $(find src -name "*.plf" | sort); do
 done
 
 echo -e "\033[mRunning the \033[33mmain.pl\033[m file..."
-"$PROLOG" --quiet --nodebug -s "$BINDIR/$MAIN$EXTPL" -g "main, halt"
+"$PROLOG" --quiet --nodebug -s "$BINDIR/$MAIN$EXTPL" -g "main"

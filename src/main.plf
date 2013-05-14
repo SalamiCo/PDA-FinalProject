@@ -1,1 +1,16 @@
-main.
+:- consult(screen).
+
+main :- (main_menu; !), nl, halt.
+
+main_menu :-
+	screen([
+		title('Reslutor de Puzzles'),
+		blank,
+		line('¡Bienvenido al mejor resolutor de puzzles de la historia!'),
+		blank(2),
+		{nl, nl, print(1), nl print(2)},
+		menu(f, file, 'Open file'),
+		menu(e, exit, 'Exit application')
+	], Opt), main_menu_proc(Opt).
+
+main_menu_proc(exit).
