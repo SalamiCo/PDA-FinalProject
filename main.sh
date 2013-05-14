@@ -3,11 +3,19 @@
 declare -r MAIN="main"
 declare -r EXTPL=".pl"
 declare -r EXTPLF=".plf"
-declare -r PROLOG="swipl"
+declare -r PROLOG="Prolog"
 declare -r SRCDIR="src"
 declare -r BINDIR="bin"
 declare -r LIBDIR="lib"
 declare -r FROLOG="$LIBDIR/frolog.pl"
+
+function Prolog () {
+  if command -v swipl >/dev/null 2>&1; then
+    swipl "$@"
+  elif command -v swipl-win >/dev/null 2>&1; then
+    swipl-win "$@"
+  fi
+}
 
 cd "$(dirname "$0")"
 
