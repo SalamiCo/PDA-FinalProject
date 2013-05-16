@@ -43,6 +43,7 @@ expand(File):-
         name(File2,Str2),
         open(File2,write,H2),
 
+  writeModuleDeclr(H2),
 	writeFunsAndLazys(H2),
         translate(H2),
         close(H2),!,
@@ -81,6 +82,9 @@ getRules(H) :-
 	      G=include(File),
 	      name(File,Str),append(Str,".plf",Str1),name(File1,Str1),open(File1,read,Hp),getRules(Hp)
 	      ;
+        G=module(_,_), \+ rule(_,_,_,_),
+        assertz(rule(module,none,none,G))
+        ;
 	      assertz(rule(pred,none,none,G))
               )
             ;
@@ -103,6 +107,12 @@ getRules(H) :-
           getRules(H)
         ).
 
+writeModuleDeclr(H) :-
+  rule(module,Head,none,Conds), !,
+  flatPred((Head,Conds),Ps),
+  writeLstClauses(H,Ps),
+  retract(rule(module,none,none,G)).
+writeModuleDeclr(_).
 
 writeFunsAndLazys(H):-
         write(H,':- style_check([-singleton,-discontiguous]).'), nl(H),
