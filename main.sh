@@ -21,6 +21,7 @@ function Prolog () {
 
 cd "$(dirname "$0")"
 
+FAILS=0
 echo -e "\033[mCompiling \033[33m$EXTPLF\033[m files to \033[33m$EXTPL\033[m..."
 for FILE in $(find src -name "*.plf" | sort); do
   if [ -f "$FILE" ]; then
@@ -36,11 +37,14 @@ for FILE in $(find src -name "*.plf" | sort); do
         mv "$OUT" "$DEST"
         echo -e "\033[32mok"
       else
+        FAILS=1
         echo -e "\033[31mfail"
       fi
     fi
   fi
 done
 
-echo -e "\033[mRunning the \033[33mmain.pl\033[m file..."
-"$PROLOG" --quiet --nodebug -s "$BINDIR/$MAIN$EXTPL" -g "main"
+if [ $FAILS -eq 0 ]; then
+  echo -e "\033[mRunning the \033[33mmain.pl\033[m file..."
+  "$PROLOG" --quiet --nodebug -s "$BINDIR/$MAIN$EXTPL" -g "main"
+fi
