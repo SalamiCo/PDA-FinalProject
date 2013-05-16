@@ -108,14 +108,13 @@ getRules(H) :-
         ).
 
 writeModuleDeclr(H) :-
-  rule(module,Head,none,Conds), !,
-  flatPred((Head,Conds),Ps),
-  writeLstClauses(H,Ps),
+  rule(module,none,none,Conds), !,
+  write(H, ':-'), write(H,Conds), write(H,'.'), nl(H),
   retract(rule(module,none,none,G)).
 writeModuleDeclr(_).
 
 writeFunsAndLazys(H):-
-        write(H,':- style_check([-singleton,-discontiguous]).'), nl(H),
+        write(H,':-style_check([-singleton,-discontiguous]).'), nl(H),
 	findall((function(F,M),none),function(F,M),L),writeLstClauses(H,L),
         write(H,'function(@,2).'),nl(H),
         write(H,'function(quote,1).'),nl(H),
