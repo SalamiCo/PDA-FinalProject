@@ -1,4 +1,4 @@
-:- module(screen, [menu/2, ansi_code/3, ansi_clean/1, ansi_pos/3, ansi_pos_col/2, ansi_move/3]).
+:- module(screen, [menu/2, ansi_code/3, ansi_clean/1, ansi_pos/3, ansi_pos_col/2, ansi_move/3, ansi_sgr/2]).
 /** <module> Utilidades de escritura por pantalla
  *
  * Módulo que incluye una serie de utilidades para la escritura por pantalla
@@ -74,7 +74,7 @@ ansi_sgr_item(underline,4).
 %
 %  Estos términos se interpretan en orden. Debe definirse al menos una opción
 %  de menú, o la llamada no podrá terminar nunca.
-menu(Data, Result) :- menu_build([clear|D]), (menu_select(D, R); menu(Data,Result)).
+menu(Data, Result) :- menu_build([clear|Data]), (menu_select(Data, Result); menu(Data,Result)).
 
 menu_build([]).
 menu_build([X|Xs]) :- menu_item(X), menu_build(Xs).
