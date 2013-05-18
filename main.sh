@@ -8,6 +8,8 @@ declare -r SRCDIR="src"
 declare -r BINDIR="bin"
 declare -r LIBDIR="lib"
 declare -r FROLOG="$LIBDIR/frolog.pl"
+declare -r PRELUDE="$LIBDIR/prelude"
+declare -r PRELUDEPL="$LIBDIR/prelude.pl"
 
 function Prolog () {
   if command -v swipl >/dev/null 2>&1; then
@@ -30,7 +32,7 @@ for FILE in $(find src -name "*.plf" | sort); do
 
     if [ ! -e "$DEST" ] || [ "$DEST" -ot "$FILE" ]; then
       echo -ne "\033[m  Compiling \033[34m$FILE\033[m to \033[34m$DEST\033[m... "
-      echo "consult('$FROLOG'). expand('${FILE%.*}')." | "$PROLOG" >/dev/null 2>&1
+      echo "consult('$FROLOG'). expand('$PRELUDE'). consult('$PRELUDEPL'). expand('${FILE%.*}')." | "$PROLOG" >/dev/null 2>&1
 
       if [ -e "$OUT" ]; then
         mkdir -p "$(dirname "$DEST")"
