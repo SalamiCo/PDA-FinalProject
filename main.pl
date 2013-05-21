@@ -4,8 +4,8 @@ main :- main_menu.
 
 main_menu :-
 	menu([
-		title('Reslutor de Puzzles'),
-		subtitle('Reslutor de Puzzles'),
+		title('Resolutor de Puzzles'),
+		subtitle('Resolutor de Puzzles'),
 		blank(1),
 		text('¡Bienvenido al mejor resolutor de puzzles de la historia!'),
 		blank(2),
