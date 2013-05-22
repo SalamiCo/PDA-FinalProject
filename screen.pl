@@ -1,4 +1,5 @@
 :- module(screen, [
+	writelc/1,
 	menu/2,
 	ansi_code/3,
 	ansi_clean/0,   ansi_clean/1,
@@ -12,6 +13,11 @@
  * Módulo que incluye una serie de utilidades para la escritura por pantalla
  * en terminal, así como un predicado específicamente diseñado para.
  */
+
+%! writelc(+Text:atom) is det
+%
+%  Escribe una línea de texto centrada en la pantalla
+writelc(T) :- center_for_(T), write(T), nl.
 
 %! ansi_code(+Nums:list, +Letter:atom -Res:atom) is det
 %  
@@ -115,14 +121,19 @@ ansi_color_(white,7).
 %  En todos los casos, T se imprimirá sin cambios, por lo que se recomienda
 %  pasar átomos como valor.
 menu(Data, Result) :-
-	menu_build([clear|Data]),
-	% TODO write '[_] _____'
-	menu_select(Data, Result),
-	% TODO write '[o] option'
-	sleep(0.5).
+	menu_build(Data),
+	menu_select(Data, _, Result).
 
-menu_build([]).
-menu_build([X|Xs]) :- menu_item(X), menu_build(Xs).
+menu_build(M) :-
+	menu_width_(M, W), W1 is W+4, assert(menuwidth(W1)),
+	menu_build_(M), retractall(menuwidth(_)).
+
+menu_width_([], 0).
+menu_width_([menu(_, _, T)|Ms], W) :- !, name(T, S), length(S, W1), menu_width_(Ms, W2), W is max(W1,W2). 
+menu_width_([_|Ms], W) :- menu_width_(Ms, W).
+
+menu_build_([]).
+menu_build_([X|Xs]) :- menu_item(X), menu_build_(Xs).
 
 menu_item(title(T)) :-
 	box_draw_, ansi_pos(1,1),
@@ -130,13 +141,15 @@ menu_item(title(T)) :-
 	ansi_sgr([bg(hi(white)), fg(black)]), center_for_(T1), write(T1),
 	nl, ansi_sgr([reset]).
 
-menu_item(subtitle(T)) :- name_join_(['——— ',T,' ———'], T1),
+menu_item(subtitle(T)) :- name_join_(['—═—═—═ ',T,' ═—═—═—'], T1),
 	center_for_(T1), write(T1), nl.
 
 menu_item(clear) :- !, ansi_clean, ansi_pos(3, 1).
+menu_item(separator) :- !, S='—═—═—═—═—═—═—═—═—═—═—═—═—═—═—═—', center_for_(S), write(S), nl.
 menu_item(blank(N)) :- N>0, !, nl, menu_item(blank(N-1)).
 menu_item(text(T)) :- center_for_(T), write(T), nl.
 menu_item(menu(K,_,T)) :- !,
+	menuwidth(W), center_(W),
 	ansi_sgr([fg(cyan)]), write('['), ansi_sgr([bold]), write(K),
 	ansi_sgr([nobold]), write('] '), ansi_sgr([reset]), write(T), nl.
 
@@ -145,10 +158,10 @@ menu_item(code([])) :- !.
 
 menu_item(_).
 
-menu_select(Data,R) :- get_single_char(K), name(C, [K]), menu_select_(Data,C,R).
+menu_select(Data,Key,R) :- get_single_char(K), name(C, [K]), menu_select_(Data,C,R,Key).
 
-menu_select_([menu(C, R, _)|_], C, R) :- !.
-menu_select_([_|Xs], C, R) :- !, menu_select_(Xs, C, R).
+menu_select_([menu(C, R, _)|_], C, R, C) :- !.
+menu_select_([_|Xs], C, R, K) :- !, menu_select_(Xs, C, R, K).
 
 box_draw_ :-
 	tty_size(L, C), box_chars_(unicode, BH, BV, BTL, BTR, BBL, BBR),
