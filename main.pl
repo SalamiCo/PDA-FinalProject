@@ -1,11 +1,11 @@
 :- use_module(screen).
 
-main :- main_menu.
+main :- main_menu, ansi_clean, ansi_pos(1, 1), !.
 
 main_menu :-
 	menu([
-		title('Reslutor de Puzzles'),
-		subtitle('Reslutor de Puzzles'),
+		title('Resolutor de Puzzles'),
+		subtitle('Menú Principal'),
 		blank(1),
 		text('¡Bienvenido al mejor resolutor de puzzles de la historia!'),
 		blank(2),

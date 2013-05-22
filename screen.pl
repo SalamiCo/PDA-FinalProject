@@ -114,23 +114,28 @@ ansi_color_(white,7).
 %
 %  En todos los casos, T se imprimirá sin cambios, por lo que se recomienda
 %  pasar átomos como valor.
-menu(Data, Result) :- menu_build([clear|Data]), (menu_select(Data, Result), menu_item(clear); menu(Data,Result)).
+menu(Data, Result) :-
+	menu_build([clear|Data]),
+	% TODO write '[_] _____'
+	menu_select(Data, Result),
+	% TODO write '[o] option'
+	sleep(0.5).
 
 menu_build([]).
 menu_build([X|Xs]) :- menu_item(X), menu_build(Xs).
 
 menu_item(title(T)) :-
-	box_draw_, ansi_code([], s, R1), write(R1), ansi_pos(1,1),
-	name(T, S), append([" ",S," "], S1), length(S1, L), name(T1, S1),
-	ansi_sgr([bg(hi(cyan)), fg(black)]), center_(L), write(T1), ansi_sgr([reset]),
-	ansi_code([], u, R2), write(R2), ansi_sgr([reset]).
+	box_draw_, ansi_pos(1,1),
+	name_join_([' ',T,' '], T1),
+	ansi_sgr([bg(hi(white)), fg(black)]), center_for_(T1), write(T1),
+	nl, ansi_sgr([reset]).
 
-menu_item(subtitle(T)) :- name(T, S), append(["— ", S, " —"], S1), length(S1,L), name(T1, S1),
-	center_(L), write(T1), nl.
+menu_item(subtitle(T)) :- name_join_(['——— ',T,' ———'], T1),
+	center_for_(T1), write(T1), nl.
 
 menu_item(clear) :- !, ansi_clean, ansi_pos(3, 1).
 menu_item(blank(N)) :- N>0, !, nl, menu_item(blank(N-1)).
-menu_item(text(T)) :- write(T), nl.
+menu_item(text(T)) :- center_for_(T), write(T), nl.
 menu_item(menu(K,_,T)) :- !,
 	ansi_sgr([fg(cyan)]), write('['), ansi_sgr([bold]), write(K),
 	ansi_sgr([nobold]), write('] '), ansi_sgr([reset]), write(T), nl.
@@ -147,7 +152,7 @@ menu_select_([_|Xs], C, R) :- !, menu_select_(Xs, C, R).
 
 box_draw_ :-
 	tty_size(L, C), box_chars_(unicode, BH, BV, BTL, BTR, BBL, BBR),
-	ansi_code([], s, R1), write(R1), ansi_sgr([fg(hi(cyan))]),
+	ansi_code([], s, R1), write(R1), ansi_sgr([fg(hi(white))]),
 	box_hor_(1, C, BH), box_hor_(L, C, BH),
 	box_ver_(1, L, BV), box_ver_(C, L, BV),
 	ansi_pos(1, 1), write(BTL),
@@ -165,3 +170,8 @@ box_ver_(C, L, BC) :- ansi_pos(L, C), write(BC), L1 is L - 1, box_ver_(C, L1, BC
 box_chars_(unicode, '═', '║', '╔', '╗', '╚', '╝').
 
 center_(L) :- tty_size(_, C), L1 is L//2, C1 is C//2, N is C1-L1, ansi_pos_col(N).
+center_for_(T) :- name(T, S), length(S, L), center_(L).
+
+name_join_(LT, R) :- name_l_(LT, LS), append(LS, S), name(R, S).
+name_l_([], []).
+name_l_([T|Ts], [S|Ss]) :- name(T, S), name_l_(Ts, Ss).
