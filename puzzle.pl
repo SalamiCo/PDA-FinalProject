@@ -20,7 +20,7 @@ puzzle_solve(Name, Strategy).
 puzzle_print(Name).
 
 puzzle_usage :-
-	writeln('\033[37;1mpuzzle_load_and_solve(+\033[4mFile\033[24m, ?\033[4mStrategy\033[24m)\033[21m'),
+	writeln('\033[;1mpuzzle_load_and_solve(+\033[4mFile\033[24m, ?\033[4mStrategy\033[24m)\033[21m'),
 	writeln('  Loads a puzzle File and solves it using the given Strategy.'),
 	writeln('  This is the most simple way of loading and solving a puzzle.'),
 	writeln('  This predicate performs the following steps:'),
@@ -56,7 +56,7 @@ puzzle_help :-
 
 :- puzzle_clear,
 	writeln('\033[1;4;33mPuzzle Solver\033[24;32m v0.1.0\033[21;37m'),
-	writeln('> \033[1;4;33mKakoru\033[24m solver \033[32mv0.1.0\033[21;37m'),
+	writeln('> \033[1;4;33mKakuro\033[24m solver \033[32mv0.1.0\033[21;37m'),
 	writeln('> \033[1;4;33mStr8ts\033[24m solver \033[32mv0.1.0\033[21;37m'),
 	nl,
 	writeln('Use \033[94mpuzzle_usage\033[37m to show basic usage'),
