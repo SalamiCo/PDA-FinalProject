@@ -23,7 +23,12 @@ puzzle_load(File, Name) :- open(File, read, Stream, []),
 	close(Stream).
 
 puzzle_solve(Name, Strategy, Solved) :-
-	puzzle(Name, kakuro, Puzzle), !, kakuro_solve(Puzzle, Strategy).
+	puzzle(Name, kakuro, Puzzle), !,
+	(	kakuro_solve(Puzzle, Strategy),
+		puzzle_unregister(Solved),
+		puzzle_register(Solved, puzzle(kakuro, Puzzle)),
+		fail
+	); !.
 puzzle_solve(Name, Strategy, Solved) :-
 	puzzle(Name, str8ts, Puzzle), !, str8ts_solve(Puzzle, Strategy).
 
