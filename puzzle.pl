@@ -1,4 +1,4 @@
-:- use_module(screen).
+:- use_module('kakuro.pl').
 
 puzzle_register(Name, puzzle(Type, Puz)) :-
 	atom(Name), atom(Type), nonvar(Puz),
@@ -13,11 +13,32 @@ puzzle_clear :- retractall(puzzle(_,_,_)).
 
 puzzle_list(L) :- findall(Name, puzzle(Name,_,_), L).
 
-puzzle_load(File, Name).
+puzzle_load(File, Name) :- open(File, read, Stream, []),
+	(	kakuro_load(Stream, Puz), !, Type=kakuro;
+		str8ts_load(Stream, Puz), !, Type=str8ts;
+		close(Stream), !, fail
+	),
+	puzzle_unregister(Name),
+	puzzle_register(Name, puzzle(Type, Puz)),
+	close(Stream).
 
-puzzle_solve(Name, Strategy).
+puzzle_solve(Name, Strategy, Solved) :-
+	puzzle(Name, kakuro, Puzzle), !, kakuro_solve(Puzzle, Strategy).
+puzzle_solve(Name, Strategy, Solved) :-
+	puzzle(Name, str8ts, Puzzle), !, str8ts_solve(Puzzle, Strategy).
 
-puzzle_print(Name).
+puzzle_print(Name) :- puzzle(Name, kakuro, Puzzle), !, kakuro_print(Puzzle).
+puzzle_print(Name) :- puzzle(Name, str8ts, Puzzle), !, str8ts_print(Puzzle).
+
+
+puzzle_load_and_solve(File, Strategy) :-
+	P='_puz', S='_solved',
+	puzzle_load(File, P),
+	puzzle_print(P),
+	puzzle_solve(P, Strategy, S),
+	puzzle_print(S),
+	puzzle_unregister(P),
+	puzzle_unregister(S).
 
 puzzle_usage :-
 	writeln('\033[;1mpuzzle_load_and_solve(+\033[4mFile\033[24m, ?\033[4mStrategy\033[24m)\033[21m'),
@@ -49,15 +70,13 @@ puzzle_help :-
 	writeln('  - \033[4mclpfd\033[24m for a CLP(FD) based search.'),
 	writeln('  - \033[4moptimized\033[24m for a prolog-only, manually optimized search.'),
 	nl,
-	writeln('\033[37;1mpuzzle_print(+\033[4mName\033[24m)\033[21m'),
+	writeln('\033[;1mpuzzle_print(+\033[4mName\033[24m)\033[21m'),
 	writeln('  Prints the puzzle associated with Name on the screen.'),
 	writeln('  This may print both solved or unsolved puzzles of any kind.'),
 	nl.
 
 :- puzzle_clear,
 	writeln('\033[1;4;33mPuzzle Solver\033[24;32m v0.1.0\033[21;37m'),
-	writeln('> \033[1;4;33mKakuro\033[24m solver \033[32mv0.1.0\033[21;37m'),
-	writeln('> \033[1;4;33mStr8ts\033[24m solver \033[32mv0.1.0\033[21;37m'),
 	nl,
 	writeln('Use \033[94mpuzzle_usage\033[37m to show basic usage'),
 	writeln('Use \033[94mpuzzle_help\033[37m to show full help'),

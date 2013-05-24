@@ -1,0 +1,1 @@
+str8ts_load(Stream, Result) :- fail.
