@@ -77,17 +77,42 @@ kakuro_lines_rowv([vh(N,_)|Rs], [(N,L)|Ls]) :- kakuro_vars(Rs, Rs1, L), kakuro_l
 kakuro_vars([V|Vs], Vs1, [V|Rs]) :- var(V), !, kakuro_vars(Vs, Vs1, Rs).
 kakuro_vars(Vs, Vs, []).
 
-% Solve a kakuro puzzle with brute force
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Solve a kakuro puzzle with brute force %
 kakuro_solve(Puzzle, brute) :- !,
-	kakuro_lines(Puzzle, _).
+	kakuro_lines(Puzzle, Lines),
+	assert(n(0)),
+	give_values(Lines),
+	n(N), retract(n(_)), N1 is N+1, assert(n(N1)),
+	write('times:', N1, '         \r'), flush_output,
+	check_values(Lines).
 
-% Solve a kakuro puzzle with clpfd restrictions
+
+give_values([]).
+give_values([(_, Vs)|Ls]) :- give_values_v(Vs), give_values(Ls).
+
+give_values_v(Vs) :- give_values_v(Vs, [1,2,3,4,5,6,7,8,9]).
+give_values_v([], _).
+give_values_v([V|Vs], Ns) :- take(Ns, V, Ns1), give_values_v(Vs, Ns1).
+
+take([N|Ns], N, Ns).
+take([N|Ns], N1, [N|Ns1]) :- take(Ns, N1, Ns1).
+
+
+check_values([]).
+check_values([(S, Ns)|Ls]) :- check_sum(S, Ns), check_values(Ls).
+
+check_sum(S, Ns) :- check_sum(S, Ns, 0).
+check_sum(S, [], S).
+check_sum(S, [N|Ns], Acc) :- Acc =< S, Acc1 is Acc + N, check_sum(S, Ns, Acc1).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Solve a kakuro puzzle with clpfd restrictions %
 kakuro_solve(Puzzle, clpfd) :- !,
 	kakuro_lines(Puzzle, Lines),
 	kakuro_restr(Lines, _),
 	term_variables(Lines,Vars),
-	label(Vars),
-	writeln(Puzzle).
+	label(Vars).
 
 kakuro_restr([], []).
 kakuro_restr([(Sum,Vars)|Ls], [Vars|VarsR]) :-
@@ -96,5 +121,6 @@ kakuro_restr([(Sum,Vars)|Ls], [Vars|VarsR]) :-
 	sum(Vars, #=, Sum),
 	kakuro_restr(Ls, VarsR).
 
-% Solve a kakuro puzzle with optimized methods
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Solve a kakuro puzzle with optimized methods %
 kakuro_solve(_, optimized) :- !.
