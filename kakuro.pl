@@ -1,6 +1,7 @@
 :- module(kakuro, [kakuro_load/2, kakuro_print/1, kakuro_solve/2]).
 
 :- use_module(library(clpfd)).
+:- use_module(library(lists)).
 
 %! kakuro_load(+Stream, -Result)
 %  Loads a Kakuro puzzle from Stream and unifies it with Result
@@ -122,16 +123,54 @@ kakuro_restr([(Sum,Vars)|Ls], [Vars|VarsR]) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solve a kakuro puzzle with optimized methods %
 kakuro_solve_optimized(Puzzle) :- 
-	retractall(kcomb(_,_,_)),
 	kakuro_lines(Puzzle, Lines),
-	kakuro_combs(Lines),
-	% TODO
-	!.
+	kakuro_combs(Lines), !,
+	kakuro_opti(Lines).
+
+kakuro_opti([]) :- !.
+kakuro_opti(Ls) :- 
+	opti_select(Ls, (S,Ns), Ls1),
+	length(Ns,L), !,
+	kcomb(S, L, Comb),
+	permutation(Comb, Ns),
+	opti_check(Ls1), 
+	kakuro_opti(Ls1).
+
+opti_check([]).
+opti_check([L|Ls]) :- opti_check_one(L), opti_check(Ls).
+
+opti_check_one((S, Vs)) :- !, sort(Vs, VsS), reverse(VsS, VsSR), opti_check_one(S, [], [1,2,3,4,5,6,7,8,9], [9,8,7,6,5,4,3,2,1], 0, 0, VsSR).
+opti_check_one(S, _, _, _, H, L, []) :- !, H >= S, L =< S.
+opti_check_one(S, Rs, [U|Us], [D|Ds], H, L, [V|Vs]) :- var(V), !,
+	H1 is H+D, L1 is L+U, opti_check_one(S, Rs, Us, Ds, H1, L1, Vs).
+opti_check_one(S, Rs, Hs, Ls, H, L, [N|Vs]) :- !,
+	\+ member(N, Rs),
+	H1 is H+N, L1 is L+N,
+	take(Hs, N, Hs1), take(Ls, N, Ls1),
+	opti_check_one(S, [N|Rs], Hs1, Ls1, H1, L1, Vs).
+
+opti_select(L, E, LR) :- !, opti_select(L, [], inf, _, _, _, E, LR).
+opti_select([], _, _, E, L1, L2, E, LR) :- !, append(L1, L2, LR).
+opti_select([L|Ls], R, M, _, _, _, E, LR) :- opti_cost(L, C), (M=inf; C<M), !,
+	opti_select(Ls, [L|R], C, L, Ls, R, E, LR).
+opti_select([L|Ls], R, M, ME, L1, L2, E, LR) :- !,
+	opti_select(Ls, [L|R], M, ME, L1, L2, E, LR).
+
+opti_cost((S, Vs), C) :- !, length(Vs, L),
+	term_variables(Vs, AVs), length(AVs, LA),
+	factdiv(L,LA, F),
+	findall(0, kcomb(S, L, _), Q), length(Q,W),
+	C is F*W.
+
+factdiv(0, _, 1) :- !.
+factdiv(_, 0, 1) :- !.
+factdiv(X, Y, Z) :- X1 is X-1, Y1 is Y-1, factdiv(X1, Y1, Z1), Z is Z1*X.
 
 kakuro_combs([]).
 kakuro_combs([(S, Ns)|Ls]) :- kakuro_comb(S, Ns), kakuro_combs(Ls).
 
 kakuro_comb(S, Ns) :- length(Ns, L),
+	retractall(kcomb(S, L, _)),
 	kakuro_comb(S, L, Comb),
 	\+ kcomb(S, L, Comb),
 	assert(kcomb(S, L, Comb)),
