@@ -77,30 +77,28 @@ kakuro_lines_rowv([vh(N,_)|Rs], [(N,L)|Ls]) :- kakuro_vars(Rs, Rs1, L), kakuro_l
 kakuro_vars([V|Vs], Vs1, [V|Rs]) :- var(V), !, kakuro_vars(Vs, Vs1, Rs).
 kakuro_vars(Vs, Vs, []).
 
+kakuro_solve(Puzzle, brute) :- kakuro_solve_brute(Puzzle).
+kakuro_solve(Puzzle, clpfd) :- kakuro_solve_clpfd(Puzzle).
+kakuro_solve(Puzzle, optimized) :- kakuro_solve_optimized(Puzzle).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solve a kakuro puzzle with brute force %
-kakuro_solve(Puzzle, brute) :- !,
+kakuro_solve_brute(Puzzle) :- !,
 	kakuro_lines(Puzzle, Lines),
-	assert(n(0)),
-	give_values(Lines),
-	n(N), retract(n(_)), N1 is N+1, assert(n(N1)),
-	write('times:', N1, '         \r'), flush_output,
-	check_values(Lines).
+	give_and_check_values(Lines).
 
+give_and_check_values([]).
+give_and_check_values([(S, Ns)|Ls]) :-
+	give_values(Ns),
+	check_sum(S, Ns),
+	give_and_check_values(Ls).
 
-give_values([]).
-give_values([(_, Vs)|Ls]) :- give_values_v(Vs), give_values(Ls).
-
-give_values_v(Vs) :- give_values_v(Vs, [1,2,3,4,5,6,7,8,9]).
-give_values_v([], _).
-give_values_v([V|Vs], Ns) :- take(Ns, V, Ns1), give_values_v(Vs, Ns1).
+give_values(Vs) :- give_values(Vs, [1,2,3,4,5,6,7,8,9]).
+give_values([], _).
+give_values([V|Vs], Ns) :- take(Ns, V, Ns1), give_values(Vs, Ns1).
 
 take([N|Ns], N, Ns).
 take([N|Ns], N1, [N|Ns1]) :- take(Ns, N1, Ns1).
-
-
-check_values([]).
-check_values([(S, Ns)|Ls]) :- check_sum(S, Ns), check_values(Ls).
 
 check_sum(S, Ns) :- check_sum(S, Ns, 0).
 check_sum(S, [], S).
@@ -108,7 +106,7 @@ check_sum(S, [N|Ns], Acc) :- Acc =< S, Acc1 is Acc + N, check_sum(S, Ns, Acc1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solve a kakuro puzzle with clpfd restrictions %
-kakuro_solve(Puzzle, clpfd) :- !,
+kakuro_solve_clpfd(Puzzle) :- !,
 	kakuro_lines(Puzzle, Lines),
 	kakuro_restr(Lines, _),
 	term_variables(Lines,Vars),
@@ -123,4 +121,25 @@ kakuro_restr([(Sum,Vars)|Ls], [Vars|VarsR]) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solve a kakuro puzzle with optimized methods %
-kakuro_solve(_, optimized) :- !.
+kakuro_solve_optimized(Puzzle) :- 
+	retractall(kcomb(_,_,_)),
+	kakuro_lines(Puzzle, Lines),
+	kakuro_combs(Lines),
+	% TODO
+	!.
+
+kakuro_combs([]).
+kakuro_combs([(S, Ns)|Ls]) :- kakuro_comb(S, Ns), kakuro_combs(Ls).
+
+kakuro_comb(S, Ns) :- length(Ns, L),
+	kakuro_comb(S, L, Comb),
+	\+ kcomb(S, L, Comb),
+	assert(kcomb(S, L, Comb)),
+	fail.
+kakuro_comb(_,_).
+
+kakuro_comb(Sum, Length, Comb) :- kakuro_comb(Sum, Length, [9,8,7,6,5,4,3,2,1], 0, 0, [], Comb).
+
+kakuro_comb(S, L, _, S, L, C, C).
+kakuro_comb(S, L, [N|Ns], SC, LC, NC, C) :- SC1 is SC+N, LC1 is LC+1, kakuro_comb(S, L, Ns, SC1, LC1, [N|NC], C).
+kakuro_comb(S, L, [_|Ns], SC, LC, NC, C) :- kakuro_comb(S, L, Ns, SC, LC, NC, C).
