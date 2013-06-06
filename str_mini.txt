@@ -1,0 +1,9 @@
+str8ts.
+[
+	[   b,    w,    w,    b,    b,    b],
+	[   b,    w,    w,    w,    w, w(5)],
+	[   w,    w,    b,    w, w(6),    w],
+	[   w,    w,    w,    b,    w,    w],
+	[w(4), w(5),    w,    w,    w,    b],
+	[   b, b(6),    b,    w,    w, b(3)]
+].
