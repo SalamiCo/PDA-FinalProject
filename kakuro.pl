@@ -98,9 +98,6 @@ give_values(Vs) :- give_values(Vs, [1,2,3,4,5,6,7,8,9]).
 give_values([], _).
 give_values([V|Vs], Ns) :- take(Ns, V, Ns1), give_values(Vs, Ns1).
 
-take([N|Ns], N, Ns).
-take([N|Ns], N1, [N|Ns1]) :- take(Ns, N1, Ns1).
-
 check_sum(S, Ns) :- check_sum(S, Ns, 0).
 check_sum(S, [], S).
 check_sum(S, [N|Ns], Acc) :- Acc =< S, Acc1 is Acc + N, check_sum(S, Ns, Acc1).

@@ -26,13 +26,18 @@ puzzle_load(File, Name) :- open(File, read, Stream, []),
 	close(Stream).
 
 puzzle_solve(Name, Strategy, Solved) :-
-	puzzle(Name, kakuro, Puzzle),
+	puzzle(Name, kakuro, Puzzle), !,
 	copy_term(Puzzle, SPuzz),
 	kakuro_solve(SPuzz, Strategy),
 	puzzle_unregister(Solved),
 	puzzle_register(Solved, puzzle(kakuro, SPuzz)).
+
 puzzle_solve(Name, Strategy, Solved) :-
-	puzzle(Name, str8ts, Puzzle), !, str8ts_solve(Puzzle, Strategy).
+	puzzle(Name, str8ts, Puzzle), !,
+	copy_term(Puzzle, SPuzz), 
+	str8ts_solve(SPuzz, Strategy),
+	puzzle_unregister(Solved),
+	puzzle_register(Solved, puzzle(str8ts, SPuzz)).
 
 puzzle_print(Name) :- puzzle(Name, kakuro, Puzzle), !, kakuro_print(Puzzle).
 puzzle_print(Name) :- puzzle(Name, str8ts, Puzzle), !, str8ts_print(Puzzle).
