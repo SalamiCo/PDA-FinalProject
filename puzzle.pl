@@ -1,5 +1,6 @@
 :- use_module('util.pl').
 :- use_module('kakuro.pl').
+:- use_module('str8ts.pl').
 
 puzzle_register(Name, puzzle(Type, Puz)) :-
 	atom(Name), atom(Type), nonvar(Puz),
