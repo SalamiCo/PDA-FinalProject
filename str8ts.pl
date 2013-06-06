@@ -54,6 +54,11 @@ str8ts_solve(Puzzle, brute) :- str8ts_solve_brute(Puzzle).
 str8ts_solve(Puzzle, clpfd) :- str8ts_solve_clpfd(Puzzle).
 str8ts_solve(Puzzle, optimized) :- str8ts_solve_optimized(Puzzle).
 
+str8ts_row_nums([], []).
+str8ts_row_nums([b|Cs], Rs) :- str8ts_row_nums(Cs, Rs).
+str8ts_row_nums([b(N)|Cs], [N|Rs]) :- str8ts_row_nums(Cs, Rs).
+str8ts_row_nums([w(N)|Cs], [N|Rs]) :- str8ts_row_nums(Cs, Rs).
+
 str8ts_solve_clpfd(Puzzle) :-
 	length(Puezzle, L),
 	term_variables(Puzzle, Vars),
