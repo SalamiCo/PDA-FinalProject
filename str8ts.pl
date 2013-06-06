@@ -47,10 +47,27 @@ str8ts_print_cell(w(N)) :- integer(N), !, N>=1, N=<9, write('\033[107;90m[\033[3
 str8ts_print_cell(b) :- !, write('\033[40;90m[ ]').
 str8ts_print_cell(b(N)) :- !, write('\033[40;90m[\033[97m'), write(N), write('\033[90m]').
 
+str8ts_rows_nums([], []).
+str8ts_rows_nums([C|Cs], [R|Rs]) :- str8ts_row_nums(C, R), str8_rows_nums(Cs, Rs).
+
 str8ts_row_nums([], []).
 str8ts_row_nums([b|Cs], Rs) :- str8ts_row_nums(Cs, Rs).
 str8ts_row_nums([b(N)|Cs], [N|Rs]) :- str8ts_row_nums(Cs, Rs).
 str8ts_row_nums([w(N)|Cs], [N|Rs]) :- str8ts_row_nums(Cs, Rs).
+
+str8ts_lines(K, L) :- 
+	str8ts_lines_rows(K, L1),
+	transpose(K, KT),
+	str8ts_lines_rows(KT, L2),
+	append(L1, L2, L).
+
+str8ts_lines_rows([], []).
+str8ts_lines_rows([R|Rs], L) :- str8ts_lines_row(R, L1), kakuro_lines_rows(Rs, L2), append(L1, L2, L).
+
+str8ts_lines_row([], []).
+str8ts_lines_row([b|Rs], Ls) :- str8ts_lines_row(Rs, Ls).
+str8ts_lines_row([b(_)|Rs], Ls) :- str8ts_lines_row(Rs, Ls).
+str8ts_lines_row([w(N)|Rs], [N|Ls]) :- str8ts_lines_row(Rs, Ls).
 
 str8ts_solve(Puzzle, brute) :- str8ts_solve_brute(Puzzle).
 str8ts_solve(Puzzle, clpfd) :- str8ts_solve_clpfd(Puzzle).
