@@ -29,7 +29,7 @@ kakuro_print_hint(N) :- N < 10, !, write(' '), write(N).
 kakuro_print_hint(N) :- write(N).
 
 %%% GRAMMAR %%%
-kakdcg_main(B) --> "kakuro\n", kakdcg_board(B).
+kakdcg_main(B) --> kakdcg_board(B).
 
 kakdcg_board([R|Rs]) --> kakdcg_row(R), !, kakdcg_board(Rs).
 kakdcg_board([]) --> [].

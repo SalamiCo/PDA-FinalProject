@@ -6,7 +6,7 @@ str8ts.
 	[b(9),    w,    w, b(4),    w,    w,    w,    b, b(5)],
 	[   b,    w,    w,    w,    w, w(3),    w,    w,    b],
 	[   b,    b,    w,    w,    w, b(9),    w, w(4),    w],
-  	[w(4),    w, w(3),    w,    b,    b,    w, w(6),    w],
-  	[   w,    w, w(1),    b,    b,    w,    w,    w,    w],
-  	[   b,    b, w(8),    w,    w,    w,    w,    b, b(2)],
-]
+  [w(4),    w, w(3),    w,    b,    b,    w, w(6),    w],
+  [   w,    w, w(1),    b,    b,    w,    w,    w,    w],
+  [   b,    b, w(8),    w,    w,    w,    w,    b, b(2)]
+].

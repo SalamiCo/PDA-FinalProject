@@ -16,8 +16,9 @@ puzzle_clear :- retractall(puzzle(_,_,_)).
 puzzle_list(L) :- findall(Name, puzzle(Name,_,_), L).
 
 puzzle_load(File, Name) :- open(File, read, Stream, []),
-	(	kakuro_load(Stream, Puz), !, Type=kakuro;
-		str8ts_load(Stream, Puz), !, Type=str8ts;
+	read(Stream, Type),
+	(	Type=kakuro, !, kakuro_load(Stream, Puz);
+		Type=str8ts, !, str8ts_load(Stream, Puz);
 		close(Stream), !, fail
 	),
 	puzzle_unregister(Name),
