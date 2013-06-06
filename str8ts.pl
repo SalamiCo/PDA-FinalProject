@@ -36,7 +36,16 @@ convert_cell(w, w(_)).
 convert_cell(w(N), w(N)).
 
 %%%
-str8ts_print(Puzzle).
+str8ts_print([]).
+str8ts_print([R|Rs]) :- str8ts_print_row(R), str8ts_print(Rs).
+
+str8ts_print_row([]) :- writeln('\033[m').
+str8ts_print_row([C|Cs]) :- str8ts_print_cell(C), str8ts_print_row(Cs).
+
+str8ts_print_cell(w(N)) :- var(N), !, write('\033[107;90m[ ]').
+str8ts_print_cell(w(N)) :- integer(N), !, N>=1, N=<9, write('\033[107;90m[\033[30m'), write(N), write('\033[90m]').
+str8ts_print_cell(b) :- !, write('\033[40;90m[ ]').
+str8ts_print_cell(b(N)) :- !, write('\033[40;90m[\033[97m'), write(N), write('\033[90m]').
 
 str8ts_solve(Puzzle, brute) :- str8ts_solve_brute(Puzzle).
 str8ts_solve(Puzzle, clpfd) :- str8ts_solve_clpfd(Puzzle).
