@@ -9,7 +9,7 @@ str8ts_load(Stream, Result) :-
 	str8ts_check_convert(Loaded, Result).
 
 str8ts_check_convert(Loaded, Result) :- 
-	length(Loaded, L),
+	length(Loaded, L), L < 10,
 	check(Loaded, L),
 	convert(Loaded, Result).
 
@@ -21,8 +21,8 @@ check_row([C|Cs], L) :- check_cell(C, L), check_row(Cs, L).
 
 check_cell(w, _).
 check_cell(b, _).
-check_cell(w(N), L) :- integer(N), N>=0, N=<L.
-check_cell(b(N), L) :- integer(N), N>=0, N=<L.
+check_cell(w(N), L) :- integer(N), N>=1, N=<L.
+check_cell(b(N), L) :- integer(N), N>=1, N=<L.
 
 convert([], []).
 convert([R|Rs], [RC|RCs]) :- convert_row(R, RC), convert(Rs, RCs).
