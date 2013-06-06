@@ -5,5 +5,5 @@ str8ts.
 	[   w,    w,    b,    w, w(6),    w],
 	[   w,    w,    w,    b,    w,    w],
 	[w(4), w(5),    w,    w,    w,    b],
-	[   b, b(6),    b,    w     w  b(3)]
+	[   b, b(6),    b,    w,    w, b(3)]
 ].
