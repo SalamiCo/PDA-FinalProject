@@ -206,8 +206,34 @@ opti_give(Nums, Rest, Comp) :-
 	take_straight(ANums, L, Rest, Str),
 	permutation(Str, Comp).
 
-% Temporal
-opti_check(_).
+opti_check([]).
+opti_check([(_,Ss)|Ps]) :- %trace,
+	append(Ss, Ns),
+	opti_check_reps(Ns),
+	opti_check_strs(Ss),
+	opti_check(Ps).
+
+opti_check_reps(Ns) :- nums(Ns, Rs), opti_check_reps_(Rs).
+opti_check_reps_([]).
+opti_check_reps_([N|Ns]) :- \+ member(N, Ns), opti_check_reps_(Ns).
+
+opti_check_strs([]).
+opti_check_strs([S|Ss]) :-
+	opti_check_str(S),
+	opti_check_strs(Ss).
+
+opti_check_str(Ns) :- %trace,
+	length(Ns, L),
+	nums(Ns, Nums),
+	(	Nums=[]
+	;
+		max_list(Nums, Max),
+		min_list(Nums, Min),
+		L1 is L-1,
+		MM is Max-Min,
+		MM =< L1
+	).
+
 
 nums([], []).
 nums([V|Ns], Rs) :- var(V), !, nums(Ns, Rs).
