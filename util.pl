@@ -1,4 +1,4 @@
-:- module(util, [timed/2, take/3, range/3, log/2, log/3]).
+:- module(util, [timed/2, take/3, range/3, log/2, log/3, merge/3]).
 
 %! timed(+Goal:goal, -Time:float)
 timed(Goal, Time) :-
@@ -12,6 +12,10 @@ take([N|Ns], N1, [N|Ns1]) :- take(Ns, N1, Ns1).
 
 range(L, H, []) :- H < L, !.
 range(L, H, [L|Vs]) :- L1 is L+1, range(L1, H, Vs).
+
+merge([], Ys, Ys) :- !.
+merge(Xs, [], Xs) :- !.
+merge([X|Xs], [Y|Ys], [X,Y|Ms]) :- merge(Xs, Ys, Ms).
 
 log_(Fmt, Args) :- format(Fmt, Args).
 

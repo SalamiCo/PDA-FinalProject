@@ -81,10 +81,9 @@ str8ts_solve(Puzzle, optimized) :- str8ts_solve_optimized(Puzzle).
 
 %% (Almost) BRUTE FORCE %%
 str8ts_solve_brute(Rows) :-
-	%trace,
-	brute_rows(Rows),
 	transpose(Rows, Cols),
-	brute_rows(Cols).
+	merge(Rows, Cols, Merged),
+	brute_rows(Merged).
 
 brute_rows([]).
 brute_rows([R|Rs]) :-
@@ -92,7 +91,7 @@ brute_rows([R|Rs]) :-
 	range(1, L, Vals),
 
 	give_values(R, Vals),
-	check_straights(R),
+	check_straights_row(R),
 
 	brute_rows(Rs).
 
@@ -102,9 +101,13 @@ give_values([w(V)|Vs], Ns) :- take(Ns, V, Ns1), give_values(Vs, Ns1).
 give_values([b|Vs], Ns) :- give_values(Vs, Ns).
 give_values([b(V)|Vs], Ns) :- take(Ns, V, Ns1), give_values(Vs, Ns1).
 
-check_straights(R) :-
-	str8ts_row_nums(R, Ns),
-	check_straight(Ns).
+check_straights_row(R) :-
+	str8ts_lines_row(R, Ns),
+	check_straights(Ns).
+
+check_straights([]).
+check_straights([S|Ss]) :-
+	check_straight(S), check_straights(Ss).
 
 check_straight(Ns) :-
 	length(Ns, L),
@@ -150,3 +153,74 @@ clpfd_max([X|Xs], Y) :- clpfd_max(Xs, Z), Y #= max(X, Z).
 
 clpfd_min([X], X) :- !.
 clpfd_min([X|Xs], Y) :- clpfd_min(Xs, Z), Y #= min(X, Z).
+
+
+%% OPTIMIZED %%
+str8ts_solve_optimized(Rows) :-
+	transpose(Rows, Cols),
+	append([Rows, Cols], All),
+
+	opti_convert(All, OAll),
+	opti_solve(OAll).
+
+opti_convert([], []).
+opti_convert([R|Rs], [C|Cs]) :-
+	length(R, L),
+	range(1, L, Ns),
+
+	str8ts_row_nums(R, RN),
+	takenums(Ns, RN, Nums),
+
+	str8ts_lines_row(R, Lines),
+
+	C=(Nums,Lines),
+	opti_convert(Rs, Cs).
+
+takenums(Ns, [], Ns).
+takenums(Ns, [V|Vs], Rs) :- var(V), !, takenums(Ns, Vs, Rs).
+takenums(Ns, [I|Is], Rs) :- take(Ns, I, Ns1), takenums(Ns1, Is, Rs).
+
+opti_solve([]) :- !.
+opti_solve(All) :- 
+	opti_select(All, All1, Sel),
+	Sel=(Rest, Comps, Comp),
+
+	opti_give(Rest, Rest1, Comp),
+
+	(	Comps=[],  All2=All1;
+		Comps\=[], All2=[(Rest1, Comps)|All1]
+	),
+
+	opti_check(All2),
+	opti_solve(All2).
+
+% Temporal
+opti_select(All, All1, Sel) :- 
+	All=[(Nums,S)|All1],
+	S=[Comp|Comps],
+	Sel=(Nums,Comps,Comp).
+
+opti_give(Nums, Rest, Comp) :-
+	nums(Comp, CNums), append([Nums, CNums], ANums),
+	length(Comp, L), !,
+	take_straight(ANums, L, Rest, Str),
+	permutation(Str, Comp).
+
+% Temporal
+opti_check(_).
+
+nums([], []).
+nums([V|Ns], Rs) :- var(V), !, nums(Ns, Rs).
+nums([N|Ns], [N|Rs]) :- nums(Ns, Rs).
+
+take_straight(Nums, L, Rest, Str) :-
+	sort(Nums, SNums), take_straight(SNums, L, [], Rest, Str).
+
+take_straight(Rest, L, Str, Rest, Str) :- length(Str, L).
+take_straight([N|Ns], L, Acc, Rest, Str) :- length(Acc, L1), L1 < L,
+	(Acc=[A|_], N is A+1; Acc=[]), take_straight(Ns, L, [N|Acc], Rest, Str).
+take_straight([N|Ns], L, [], [N|Rest], Str) :-
+	length(Ns, L1), L1 >= L, take_straight(Ns, L, [], Rest, Str).
+
+prtls([]).
+prtls([X|Xs]) :- writeln(X), prtls(Xs).

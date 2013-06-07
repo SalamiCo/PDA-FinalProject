@@ -127,9 +127,11 @@ kakuro_solve_optimized(Puzzle) :-
 kakuro_opti([]) :- !.
 kakuro_opti(Ls) :- 
 	opti_select(Ls, (S,Ns), Ls1),
+
 	length(Ns,L), !,
 	kcomb(S, L, Comb),
 	permutation(Comb, Ns),
+	
 	opti_check(Ls1), 
 	kakuro_opti(Ls1).
 
