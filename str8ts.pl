@@ -194,20 +194,22 @@ opti_solve(All) :-
 	opti_check(All2),
 	opti_solve(All2).
 
-% Temporal
+% Select the comprartment with the least possibilities
 opti_select(All, All1, Sel) :- 
 	All=[(Nums,S)|All1],
 	S=[Comp|Comps],
 	Sel=(Nums,Comps,Comp).
 
+% Give values to vars
 opti_give(Nums, Rest, Comp) :-
 	nums(Comp, CNums), append([Nums, CNums], ANums),
 	length(Comp, L), !,
 	take_straight(ANums, L, Rest, Str),
 	permutation(Str, Comp).
 
+% Check consistency
 opti_check([]).
-opti_check([(_,Ss)|Ps]) :- %trace,
+opti_check([(_,Ss)|Ps]) :- 
 	append(Ss, Ns),
 	opti_check_reps(Ns),
 	opti_check_strs(Ss),
@@ -222,7 +224,7 @@ opti_check_strs([S|Ss]) :-
 	opti_check_str(S),
 	opti_check_strs(Ss).
 
-opti_check_str(Ns) :- %trace,
+opti_check_str(Ns) :- 
 	length(Ns, L),
 	nums(Ns, Nums),
 	(	Nums=[]
