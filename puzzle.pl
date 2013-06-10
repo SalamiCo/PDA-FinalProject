@@ -2,46 +2,48 @@
 :- use_module('kakuro.pl').
 :- use_module('str8ts.pl').
 
-puzzle_register(Name, puzzle(Type, Puz)) :-
-	atom(Name), atom(Type), nonvar(Puz),
-	\+ puzzle(Name, _, _),
-	assert(puzzle(Name, Type, Puz)).
-
-puzzle_unregister(Name) :-
-	atom(Name),
-	retractall(puzzle(Name, _, _)).
-
-puzzle_clear :- retractall(puzzle(_,_,_)).
-
-puzzle_list(L) :- findall(Name, puzzle(Name,_,_), L).
-
-puzzle_load(File, Name) :- open(File, read, Stream, []),
+%! puzzle_load(+File:atom, -Puzzle:term) is semidet
+%
+%  Loads a puzzle from a file and returns it in Puzzle.
+%  The puzzle file starts with the name of the puzzle, a full stop, and an EOL.
+%  The restof the file must follow the specific format of the puzzle, defined in the puzzle module.
+%
+%  @arg File Name of the file to load
+%  @arg Puzzle Puzzle loaded from the specified file
+puzzle_load(File, (Type,Puz)) :- open(File, read, Stream, []),
 	read(Stream, Type),
 	(	Type=kakuro, !, kakuro_load(Stream, Puz);
 		Type=str8ts, !, str8ts_load(Stream, Puz);
 		close(Stream), !, fail
 	),
-	puzzle_unregister(Name),
-	puzzle_register(Name, puzzle(Type, Puz)),
 	close(Stream).
 
-puzzle_solve(Name, Strategy, Solved) :-
-	puzzle(Name, kakuro, Puzzle), !,
-	copy_term(Puzzle, SPuzz),
-	kakuro_solve(SPuzz, Strategy),
-	puzzle_unregister(Solved),
-	puzzle_register(Solved, puzzle(kakuro, SPuzz)).
+%! puzzle_solve(+Puzzle:term, +Strategy:atom, -Solved:term) is nondet
+%
+%  Resolves the given Puzzle using the specified Strategy and unifies the result in Solved.
+%
+%  The Stretegy might be one of:
+%  + brute: Solves the puzzle using an (almost) brute-force approach.
+%  + clpfd: Solves the puzzle using CLP(FD) restrictions.
+%  + optimized: Solves the puzzle using an optimized algorithm that drastically reduces computation choices. 
+%
+%  @arg Puzzle The puzzle to be solved
+%  @arg Strategy The strategy to solve the puzzle with
+%  @arg Solved The solved puzzle
+puzzle_solve((Type, Puzzle), Strategy, (Type, Solved)) :-
+	copy_term(Puzzle, Solved), 
+	(	Type=kakuro, !, kakuro_solve(Solved, Strategy);
+		Type=str8ts, !, str8ts_solve(Solved, Strategy);
+		!, fail
+	).
 
-puzzle_solve(Name, Strategy, Solved) :-
-	puzzle(Name, str8ts, Puzzle), !,
-	copy_term(Puzzle, SPuzz), 
-	str8ts_solve(SPuzz, Strategy),
-	puzzle_unregister(Solved),
-	puzzle_register(Solved, puzzle(str8ts, SPuzz)).
-
-puzzle_print(Name) :- puzzle(Name, kakuro, Puzzle), !, kakuro_print(Puzzle).
-puzzle_print(Name) :- puzzle(Name, str8ts, Puzzle), !, str8ts_print(Puzzle).
-
+%! puzzle_print(+Puzzle:term) is semidet
+%  
+%  Prints a puzzle using colored text to represent what would be wirtten on paper.
+%
+%  @arg Puzzle The puzle to be printed
+puzzle_print((kakuro, Puzzle)) :- kakuro_print(Puzzle).
+puzzle_print((str8ts, Puzzle)) :- str8ts_print(Puzzle).
 
 puzzle_load_and_solve(File, Strategy) :-
 	P='_puz', S='_solved',
@@ -57,22 +59,24 @@ puzzle_load_and_solve(File, Strategy) :-
 	puzzle_unregister(P),
 	puzzle_unregister(S).
 
-puzzle_usage :-
+%! puzzle_help is det
+%
+%  Prints help about the solver.
+puzzle_help :-
 	writeln('\033[;1mpuzzle_load_and_solve(+\033[4mFile\033[24m, ?\033[4mStrategy\033[24m)\033[21m'),
 	writeln('  Loads a puzzle File and solves it using the given Strategy.'),
 	writeln('  This is the most simple way of loading and solving a puzzle.'),
 	writeln('  This predicate performs the following steps:'),
-	writeln('  - Loads the specified File into a puzzle with a default name.'),
+	writeln('  - Loads the specified File.'),
 	writeln('  - Prints the original, unsolved version of the puzzle.'),
 	writeln('  - Solves the puzzle using the specified Strategy.'),
 	writeln('  - Prints the solved puzzle and shows the time it took.'),
-	writeln('  - Unregisters both the solved and the unsolved puzzles.'),
+	writeln('  Note that this predicate solves the puzzle only once, so the time might')
+	writeln('  not represent the actual efficiency of the Strategy.')
 	writeln('  For more information about the available strategies, see the full help'),
 	writeln('  on the \033[4mpuzzle_solve\033[24m predicate.'),
-	nl.
-
-puzzle_help :-
-	puzzle_usage,
+	nl,
+	nl,
 	writeln('\033[1mpuzzle_load(+\033[4mFile\033[24m, ?\033[4mName\033[24m)\033[21m'),
 	writeln('  Loads a puzzle file specified in File, and names is Name if provided.'),
 	writeln('  If not provided, a new Name is generated and returned.'),
@@ -92,9 +96,6 @@ puzzle_help :-
 	writeln('  This may print both solved or unsolved puzzles of any kind.'),
 	nl.
 
-:- puzzle_clear,
-	writeln('\033[1;4;33mPuzzle Solver\033[24;32m v0.1.0\033[21;37m'),
-	nl,
-	writeln('Use \033[94mpuzzle_usage\033[37m to show basic usage'),
+:- 	writeln('\033[1;4;33mPuzzle Solver\033[21;37m'),
 	writeln('Use \033[94mpuzzle_help\033[37m to show full help'),
 	writeln('\033[m').
