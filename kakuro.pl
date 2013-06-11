@@ -2,6 +2,7 @@
 
 :- use_module(library(clpfd)).
 :- use_module(library(lists)).
+:- use_module('util.pl').
 
 %! kakuro_load(+Stream, -Result) is semidet
 %
@@ -192,6 +193,7 @@ opti_check_one(S, Rs, Hs, Ls, H, L, [N|Vs]) :- !,
 
 % Selects the line with the least possibilities.
 opti_select(L, E, LR) :- !, opti_select(L, [], inf, _, _, _, E, LR).
+
 opti_select([], _, _, E, L1, L2, E, LR) :- !, append(L1, L2, LR).
 opti_select([L|Ls], R, M, _, _, _, E, LR) :- opti_cost(L, C), (M=inf; C<M), !,
 	opti_select(Ls, [L|R], C, L, Ls, R, E, LR).
@@ -204,11 +206,6 @@ opti_cost((S, Vs), C) :- !, length(Vs, L),
 	factdiv(L,LA, F),
 	findall(0, kcomb(S, L, _), Q), length(Q,W),
 	C is F*W.
-
-% Returns X!/Y! in Z
-factdiv(0, _, 1) :- !.
-factdiv(_, 0, 1) :- !.
-factdiv(X, Y, Z) :- X1 is X-1, Y1 is Y-1, factdiv(X1, Y1, Z1), Z is Z1*X.
 
 % Generates all possible combinations for the given lines, withouth permutations.
 kakuro_combs([]).

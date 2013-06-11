@@ -1,4 +1,4 @@
-:- module(util, [timed/2, take/3, range/3, merge/3]).
+:- module(util, [timed/2, take/3, range/3, merge/3, factdiv/3]).
 
 %! timed(+Goal:goal, -Time:float) is nondet
 %  
@@ -13,6 +13,17 @@ timed(Goal, Time) :-
 	call(Goal),
 	get_time(T2),
 	Time is round((T2 - T1)*1000000)/1000000.
+
+%! factdiv(+X:integer, +Y:integer, -Z:integer) is det
+%
+%  Returns in Z the result of (X! / Y!).
+%
+%  @arg X First argument
+%  @arg Y Seconds argument
+%  @arg Result
+factdiv(0, _, 1) :- !.
+factdiv(X, Y, 1) :- X =< Y, !.
+factdiv(X, Y, Z) :- X1 is X-1, factdiv(X1, Y, Z1), Z is Z1*X.
 
 %! take(+List:list, ?Elem:mixed, -Rest:list) is nondet
 %  

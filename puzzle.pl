@@ -45,6 +45,13 @@ puzzle_solve((Type, Puzzle), Strategy, (Type, Solved)) :-
 puzzle_print((kakuro, Puzzle)) :- kakuro_print(Puzzle).
 puzzle_print((str8ts, Puzzle)) :- str8ts_print(Puzzle).
 
+%! puzzle_load_and_solve(+File:term, +Strategy:atom) is det
+%  
+%  Loads a puzzle and solves it until it gives no more solutions, giving the time taken
+%  and printing both the original puzzle and allthe solutions
+%
+%  @arg File File where the puzzle can be found
+%  @arg Strategy Strategy to use to solve the puzzle
 puzzle_load_and_solve(File, Strategy) :-
 	write('\033[mLoading puzzle on \033[4m'), write(File), writeln('\033[24m...'),
 	timed(puzzle_load(File, P), T1),
@@ -52,9 +59,50 @@ puzzle_load_and_solve(File, Strategy) :-
 	write('\033[mLoaded a \033[1m'), write(Type), write('\033[21m puzzle in '), write(T1), writeln('s'),
 	puzzle_print(P),
 	write('Solving the puzzle using the \033[1m'), write(Strategy), writeln('\033[21m strategy'),
-	timed(puzzle_solve(P, Strategy, S), T2),
-	write('\033[mSolved puzzle in '), write(T2), writeln('s'),
-	puzzle_print(S).
+	timed(findall(S, puzzle_solve(P, Strategy, S),L), T2),
+	(member(SS, L), nl, puzzle_print(SS), fail; !),
+	length(L, N),
+	write('\033[mFound \033[1m'), write(N), write('\033[21m solutions in \033[1m'),
+	write(T2), writeln('s\033[m').
+
+
+%! puzzle_load_and_compare(+File:term) is det
+% 
+%  Same as puzzle_load_and_compare(File, [clpfd, optimized, brute]).
+%  
+%  @arg File File to load the puzzle from
+puzzle_load_and_compare(File) :- puzzle_load_and_compare(File, [clpfd, optimized, brute]).
+
+%! puzzle_load_and_compare(+File:term, +Stategies:list) is det
+%
+%  Loads a puzzle and solves it a few times in order to compare the times for
+%  the given Strategies in an accurate way
+%
+%  @arg File File to load the puzzle from
+%  @arg Strategies Strategies to compare on the given puzzle
+puzzle_load_and_compare(File, Strats) :-
+	puzzle_load(File, Puzzle),
+	(member(Strat, Strats), puzzle_solve_multi(Puzzle, Strat), fail; !).
+
+puzzle_solve_multi(Puz, Strat) :-
+	get_time(T), T1 is T+60,
+	puzzle_solve_multi(Puz, Strat, T1, 1000, 0, 0).
+
+puzzle_solve_multi(_, _, TMax, NMax, _, N) :-
+	(	N >= NMax;
+		get_time(T), T >= TMax
+	), !, nl.
+puzzle_solve_multi(Puz, Strat, TMax, NMax, TSum, N) :-
+	timed(findall('', puzzle_solve(Puz, Strat, _), _), T),
+	T1 is TSum+T, N1 is N+1,
+
+	write('\033[2KStrategy \033[1m'), write(Strat),
+	write('\033[21m - Solved \033[1m'), write(N1),
+	write('\033[21m times - Average time \033[1m'),
+	TAvg is round(1000000*T1/N1) / 1000000, write(TAvg),
+	write('\033[21ms\r'), flush_output,
+
+	puzzle_solve_multi(Puz, Strat, TMax, NMax, T1, N1).
 
 %! puzzle_help is det
 %
@@ -68,8 +116,8 @@ puzzle_help :-
 	writeln('  - Prints the original, unsolved version of the puzzle.'),
 	writeln('  - Solves the puzzle using the specified Strategy.'),
 	writeln('  - Prints the solved puzzle and shows the time it took.'),
-	writeln('  Note that this predicate solves the puzzle only once, so the time might')
-	writeln('  not represent the actual efficiency of the Strategy.')
+	writeln('  Note that this predicate solves the puzzle only once, so the time might'),
+	writeln('  not represent the actual efficiency of the Strategy.'),
 	writeln('  For more information about the available strategies, see the full help'),
 	writeln('  on the \033[4mpuzzle_solve\033[24m predicate.'),
 	nl,
@@ -93,6 +141,9 @@ puzzle_help :-
 	writeln('  This may print both solved or unsolved puzzles of any kind.'),
 	nl.
 
-:- 	writeln('\033[1;4;33mPuzzle Solver\033[21;37m'),
+:- 	writeln('\033[1;4;33mPuzzle Solver\033[21;24;37m'),
+	writeln(' \033[1;96m+ \033[21;92mDaniel Escoz Solana\033[m'),
+	writeln(' \033[1;96m+ \033[21;92mPedro Morgado Alarcón\033[m'),
+	nl,
 	writeln('Use \033[94mpuzzle_help\033[37m to show full help'),
 	writeln('\033[m').
