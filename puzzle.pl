@@ -46,18 +46,15 @@ puzzle_print((kakuro, Puzzle)) :- kakuro_print(Puzzle).
 puzzle_print((str8ts, Puzzle)) :- str8ts_print(Puzzle).
 
 puzzle_load_and_solve(File, Strategy) :-
-	P='_puz', S='_solved',
 	write('\033[mLoading puzzle on \033[4m'), write(File), writeln('\033[24m...'),
 	timed(puzzle_load(File, P), T1),
-	puzzle(P, Type, _),
+	P=(Type, _),
 	write('\033[mLoaded a \033[1m'), write(Type), write('\033[21m puzzle in '), write(T1), writeln('s'),
 	puzzle_print(P),
 	write('Solving the puzzle using the \033[1m'), write(Strategy), writeln('\033[21m strategy'),
 	timed(puzzle_solve(P, Strategy, S), T2),
 	write('\033[mSolved puzzle in '), write(T2), writeln('s'),
-	puzzle_print(S),
-	puzzle_unregister(P),
-	puzzle_unregister(S).
+	puzzle_print(S).
 
 %! puzzle_help is det
 %
