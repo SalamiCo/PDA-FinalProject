@@ -39,7 +39,7 @@ puzzle_solve((Type, Puzzle), Strategy, (Type, Solved)) :-
 
 %! puzzle_print(+Puzzle:term) is semidet
 %  
-%  Prints a puzzle using colored text to represent what would be wirtten on paper.
+%  Prints a puzzle using colored text to represent what would be written on paper.
 %
 %  @arg Puzzle The puzle to be printed
 puzzle_print((kakuro, Puzzle)) :- kakuro_print(Puzzle).
