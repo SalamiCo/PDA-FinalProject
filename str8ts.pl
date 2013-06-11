@@ -61,7 +61,7 @@ str8ts_lines(S, L) :-
 	str8ts_lines_rows(S, L1),
 	transpose(S, ST),
 	str8ts_lines_rows(ST, L2),
-	append(L1, L2, L).
+	merge(L1, L2, L).
 
 str8ts_lines_rows([], []).
 str8ts_lines_rows([R|Rs], L) :- str8ts_lines_row(R, L1), str8ts_lines_rows(Rs, L2), append(L1, L2, L).

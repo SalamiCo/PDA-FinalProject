@@ -1,4 +1,4 @@
-:- module(util, [timed/2, take/3, range/3, log/2, log/3, merge/3]).
+:- module(util, [timed/2, take/3, range/3, merge/3]).
 
 %! timed(+Goal:goal, -Time:float) is nondet
 %  
