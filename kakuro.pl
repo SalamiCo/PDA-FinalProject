@@ -137,39 +137,48 @@ check_sum(S, [N|Ns], Acc) :- Acc =< S, Acc1 is Acc + N, check_sum(S, Ns, Acc1).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solve a kakuro puzzle with clpfd restrictions %
 kakuro_solve_clpfd(Puzzle) :- !,
-	kakuro_lines(Puzzle, Lines),
-	kakuro_restr(Lines, _),
-	term_variables(Lines,Vars),
-	label(Vars).
+	kakuro_lines(Puzzle, Lines),	% Get the lines
+	kakuro_restr(Lines),			% Put all the restrictions
+	term_variables(Lines,Vars),	
+	label(Vars).	% GO
 
-kakuro_restr([], []).
-kakuro_restr([(Sum,Vars)|Ls], [Vars|VarsR]) :-
-	Vars ins 1..9,
-	all_different(Vars),
-	sum(Vars, #=, Sum),
-	kakuro_restr(Ls, VarsR).
+% Gives all restrictions
+kakuro_restr([]).
+kakuro_restr([(Sum,Vars)|Ls]) :-
+	Vars ins 1..9,			% All variables must be in [1..9]
+	all_different(Vars),	% All variables must be different
+	sum(Vars, #=, Sum),		% All variables must sum exactly Sum
+	kakuro_restr(Ls).
+
+% Yep. That's all.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solve a kakuro puzzle with optimized methods %
 kakuro_solve_optimized(Puzzle) :- 
-	kakuro_lines(Puzzle, Lines),
-	kakuro_combs(Lines), !,
-	kakuro_opti(Lines).
+	kakuro_lines(Puzzle, Lines),	% Get the lines
+	kakuro_combs(Lines), !,			% Generate the combinations for the sums/length
+	kakuro_opti(Lines).				% GO!
 
+% Solves the puzzle in an iteratifve process...
 kakuro_opti([]) :- !.
 kakuro_opti(Ls) :- 
-	opti_select(Ls, (S,Ns), Ls1),
+	opti_select(Ls, (S,Ns), Ls1),	% Select the line with the least possibilities
 
 	length(Ns,L), !,
 	kcomb(S, L, Comb),
-	permutation(Comb, Ns),
+	permutation(Comb, Ns),	% Generate all permutations for all combinations of that sum/length
 	
-	opti_check(Ls1), 
-	kakuro_opti(Ls1).
+	opti_check(Ls1), 	% Check that everything keeps making sense
+	kakuro_opti(Ls1).	
 
+% Checks that everything makes sense
 opti_check([]).
 opti_check([L|Ls]) :- opti_check_one(L), opti_check(Ls).
 
+% Checks the given line to see if it makes sense still:
+% + If given the highest possible values, the sum is smaller
+% + If given the lowest possible values, the sum is larger
+% This takes into account the no-repetition of values.
 opti_check_one((S, Vs)) :- !, sort(Vs, VsS), reverse(VsS, VsSR), opti_check_one(S, [], [1,2,3,4,5,6,7,8,9], [9,8,7,6,5,4,3,2,1], 0, 0, VsSR).
 opti_check_one(S, _, _, _, H, L, []) :- !, H >= S, L =< S.
 opti_check_one(S, Rs, [U|Us], [D|Ds], H, L, [V|Vs]) :- var(V), !,
@@ -180,6 +189,8 @@ opti_check_one(S, Rs, Hs, Ls, H, L, [N|Vs]) :- !,
 	take(Hs, N, Hs1), take(Ls, N, Ls1),
 	opti_check_one(S, [N|Rs], Hs1, Ls1, H1, L1, Vs).
 
+
+% Selects the line with the least possibilities.
 opti_select(L, E, LR) :- !, opti_select(L, [], inf, _, _, _, E, LR).
 opti_select([], _, _, E, L1, L2, E, LR) :- !, append(L1, L2, LR).
 opti_select([L|Ls], R, M, _, _, _, E, LR) :- opti_cost(L, C), (M=inf; C<M), !,
@@ -187,19 +198,23 @@ opti_select([L|Ls], R, M, _, _, _, E, LR) :- opti_cost(L, C), (M=inf; C<M), !,
 opti_select([L|Ls], R, M, ME, L1, L2, E, LR) :- !,
 	opti_select(Ls, [L|R], M, ME, L1, L2, E, LR).
 
+% Calculates the "cost", i.e., the number of possible values permutations
 opti_cost((S, Vs), C) :- !, length(Vs, L),
 	term_variables(Vs, AVs), length(AVs, LA),
 	factdiv(L,LA, F),
 	findall(0, kcomb(S, L, _), Q), length(Q,W),
 	C is F*W.
 
+% Returns X!/Y! in Z
 factdiv(0, _, 1) :- !.
 factdiv(_, 0, 1) :- !.
 factdiv(X, Y, Z) :- X1 is X-1, Y1 is Y-1, factdiv(X1, Y1, Z1), Z is Z1*X.
 
+% Generates all possible combinations for the given lines, withouth permutations.
 kakuro_combs([]).
 kakuro_combs([(S, Ns)|Ls]) :- kakuro_comb(S, Ns), kakuro_combs(Ls).
 
+% Generate cominationsfor a line
 kakuro_comb(S, Ns) :- length(Ns, L),
 	retractall(kcomb(S, L, _)),
 	kakuro_comb(S, L, Comb),
