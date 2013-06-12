@@ -237,22 +237,56 @@ opti_solve(All) :-
 	opti_check(All2),	% Check for consistency
 	opti_solve(All2).	% Keep going
 
-% Select the compartment with the least possibilities
-opti_select(All, All1, Sel) :- 
+% Trivial version -- always take the first
+opti_select(All, All1, Sel) :- !,
 	All=[(Nums,S)|All1],
 	S=[Comp|Comps],
 	Sel=(Nums,Comps,Comp).
 
+
+/*
+	% NOTE: This was intended as a smart-select.
+	% It would choose the best compartment, reducing computation time and accelerating the solving.
+	% However, it does NOT. Seems like something here takes too long for this to actually matter, so
+	% this whole section is commented out so it can be observed, but not run.
+
+opti_select(All, All1, Sel) :-
+	opti_select(All, [], inf, _, _, _, All1, Sel).
+
+opti_select([], _, _, MPre, MRest, Sel, Rest, Sel) :- append(MPre, MRest, Rest).
+opti_select([L|Ls], Pre, MCost, _, _, _, Rest, Sel) :-
+	L=(Nums,Comps),
+	opti_select_one(Comps, Nums, CompsP, CompsR, Comp, CCost),
+	(MCost=inf; CCost > 0, CCost < MCost), !,
+
+	append(CompsP, CompsR, CompsPR),
+	opti_select(Ls, [L|Pre], CCost, Pre, Ls, (Nums, CompsPR, Comp), Rest, Sel).
+opti_select([L|Ls], Pre, MCost, MPre, MRest, MSel, Rest, Sel) :-
+	opti_select(Ls, [L|Pre], MCost, MPre, MRest, MSel, Rest, Sel).
+
+% Select the minimum compartment of asingle line
+opti_select_one(Comps, Nums, RPre, Rest, Comp, Cost) :-
+	opti_select_one(Comps, Nums, [], inf, _, _, _, Comp, RPre, Rest, Cost).
+
+opti_select_one([], _, _, Cost, Pre, Rest, Comp, Comp, Pre, Rest, Cost).
+opti_select_one([C|Cs], Nums, Pre, MCost, _, _, _, Comp, RPre, Rest, Cost) :-
+	opti_cost(Nums, C, CCost), (MCost=inf; CCost > 0, CCost < MCost), !,
+	opti_select_one(Cs, Nums, [C|Pre], CCost, Pre, Cs, C, Comp, RPre, Rest, Cost).
+
+opti_select_one([C|Cs], Nums, Pre, MCost, MPre, MRest, MComp, Comp, RPre, Rest, Cost) :-
+	opti_select_one(Cs, Nums, [C|Pre], MCost, MPre, MRest, MComp, Comp, RPre, Rest, Cost).
+
 % Calculates the cost of a compartment
 opti_cost(Rest, Comp, Cost) :-
 	length(Comp, L),
-	copy_term(Comp, Sets),
-	findall('', take_straight(Rest, L, _, Sets), Strs),
+	%copy_term(Comp, Sets),
+	findall(Str, take_straight(Rest, L, _, Str), Strs),
 	length(Strs, S),
 
 	nums(Comp, Ns), length(Ns, N),
 	factdiv(L, N, P),
 	Cost is P*S.
+*/
 
 % Give values to vars
 opti_give(Nums, Rest, Comp) :-
